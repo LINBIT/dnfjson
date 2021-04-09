@@ -69,8 +69,6 @@ class JsonTransactionProgress(dnf.callback.TransactionProgress):
             'action': status_strings[action],
             'done_pkgs': len(self.pkg_done),
             'total_pkgs': self.total_pkgs,
-            'done_size': ti_done,
-            'total_size': ti_total,
         }))
 
 def prepare_dnf():
