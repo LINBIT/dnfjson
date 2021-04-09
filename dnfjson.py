@@ -49,24 +49,29 @@ class JsonProgressMeter(dnf.callback.DownloadProgress):
         }))
 
 class JsonTransactionProgress(dnf.callback.TransactionProgress):
-    def __init__(self):
+    def __init__(self, total_pkgs):
         self.done_steps = 0
+        self.pkg_done = {}
+        self.total_pkgs = total_pkgs
 
     def progress(self, package, action, ti_done, ti_total, ts_done, ts_total):
         if action not in [dnf.callback.PKG_INSTALL, dnf.callback.PKG_UPGRADED]:
             return
 
-        if ts_done > self.done_steps:
-            print(json.dumps({
-                'type': 'installing',
-                'package': json_package(package) if package not in [None, ''] else None,
-                'action': status_strings[action],
-                'done_steps': ts_done,
-                'total_steps': ts_total,
-                'done_size': ti_done,
-                'total_size': ti_total,
-            }))
-            self.done_steps = ts_done
+        if package in self.pkg_done:
+            return
+
+        self.pkg_done[package] = True
+
+        print(json.dumps({
+            'type': 'installing',
+            'package': json_package(package) if package not in [None, ''] else None,
+            'action': status_strings[action],
+            'done_pkgs': len(self.pkg_done),
+            'total_pkgs': self.total_pkgs,
+            'done_size': ti_done,
+            'total_size': ti_total,
+        }))
 
 def prepare_dnf():
     base = dnf.Base()
@@ -98,7 +103,7 @@ def install(packages, pretend=False):
         return
 
     base.download_packages(base.transaction.install_set, progress=JsonProgressMeter())
-    base.do_transaction(JsonTransactionProgress())
+    base.do_transaction(JsonTransactionProgress(len(base.transaction.install_set)))
 
 def upgrade(packages, pretend=False):
     base = prepare_dnf()
@@ -117,6 +122,9 @@ def upgrade(packages, pretend=False):
             'packages': json_pkgs,
         }))
         return
+
+    base.download_packages(base.transaction.install_set, progress=JsonProgressMeter())
+    base.do_transaction(JsonTransactionProgress(len(base.transaction.install_set)))
 
 def main():
     parser = argparse.ArgumentParser()
