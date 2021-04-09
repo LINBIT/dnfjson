@@ -3,6 +3,7 @@
 import argparse
 import json
 import dnf
+from dnf.cli.option_parser import OptionParser
 
 status_strings = {
     dnf.callback.PKG_DOWNGRADE: 'PKG_DOWNGRADE',
@@ -71,8 +72,9 @@ class JsonTransactionProgress(dnf.callback.TransactionProgress):
             'total_pkgs': self.total_pkgs,
         }))
 
-def prepare_dnf():
+def prepare_dnf(exclude=[]):
     base = dnf.Base()
+    base.conf.exclude_pkgs(exclude)
     base.read_all_repos()
     base.fill_sack()
     return base
@@ -86,8 +88,8 @@ def json_package(pkg):
         'arch': pkg.arch,
     }
 
-def install(packages, pretend=False):
-    base = prepare_dnf()
+def install(packages, pretend=False, exclude=[]):
+    base = prepare_dnf(exclude=exclude)
     base.install_specs(packages)
     base.resolve()
 
@@ -103,8 +105,8 @@ def install(packages, pretend=False):
     base.download_packages(base.transaction.install_set, progress=JsonProgressMeter())
     base.do_transaction(JsonTransactionProgress(len(base.transaction.install_set)))
 
-def upgrade(packages, pretend=False):
-    base = prepare_dnf()
+def upgrade(packages, pretend=False, exclude=[]):
+    base = prepare_dnf(exclude=exclude)
 
     if len(packages) == 0:
         base.upgrade_all()
@@ -130,11 +132,15 @@ def main():
 
     install_group = subparsers.add_parser('install')
     install_group.add_argument('--pretend', action='store_true')
+    install_group.add_argument('-x', '--exclude', '--excludepkgs', default=[],
+                               dest='excludepkgs', action=OptionParser._SplitCallback)
     install_group.add_argument('package', nargs='+')
 
-    install_group = subparsers.add_parser('upgrade')
-    install_group.add_argument('--pretend', action='store_true')
-    install_group.add_argument('package', nargs='*')
+    upgrade_group = subparsers.add_parser('upgrade')
+    upgrade_group.add_argument('--pretend', action='store_true')
+    upgrade_group.add_argument('-x', '--exclude', '--excludepkgs', default=[],
+                               dest='excludepkgs', action=OptionParser._SplitCallback)
+    upgrade_group.add_argument('package', nargs='*')
 
     args = parser.parse_args()
 
@@ -142,12 +148,15 @@ def main():
         parser.parse_args(['--help'])
         sys.exit(0)
 
+    if 'excludepkgs' not in args:
+        args.excludepkgs = []
+
     if args.command == 'install':
-        install(args.package, pretend=args.pretend)
+        install(args.package, pretend=args.pretend, exclude=args.excludekgs)
         return
 
     if args.command == 'upgrade':
-        upgrade(args.package, pretend=args.pretend)
+        upgrade(args.package, pretend=args.pretend, exclude=args.excludepkgs)
         return
 
 if __name__ == '__main__':
