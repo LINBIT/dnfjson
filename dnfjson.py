@@ -152,7 +152,7 @@ def main():
         args.excludepkgs = []
 
     if args.command == 'install':
-        install(args.package, pretend=args.pretend, exclude=args.excludekgs)
+        install(args.package, pretend=args.pretend, exclude=args.excludepkgs)
         return
 
     if args.command == 'upgrade':
