@@ -79,6 +79,8 @@ class JsonTransactionProgress(dnf.callback.TransactionProgress):
 
 def prepare_dnf(args=None):
     base = dnf.Base()
+    base.init_plugins()
+    base.configure_plugins()
     base.conf.exclude_pkgs(args.excludepkgs if args else None)
     base.read_all_repos()
 
