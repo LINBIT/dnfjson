@@ -8,7 +8,7 @@ in the JSON format.
 ## Installing
 
 ```
-$ pip3 install https://github.com/LINBIT/dnfjson/archive/refs/heads/master.zip
+$ pip3 install dnfjson
 ```
 
 ## Example
