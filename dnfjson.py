@@ -81,6 +81,8 @@ def prepare_dnf(args=None):
     base = dnf.Base()
     base.init_plugins()
     base.configure_plugins()
+    if args and args.releasever:
+        base.conf.substitutions['releasever'] = args.releasever
     base.conf.exclude_pkgs(args.excludepkgs if args else None)
     base.read_all_repos()
 
@@ -188,6 +190,8 @@ def main():
     parser.add_argument("--setopt", dest="setopts", default=[],
                         action=OptionParser._SetoptsCallback,
                         help="set arbitrary config and repo options")
+    parser.add_argument("--releasever", default=None,
+                        dest="releasever", help="set $releasever variable")
 
     subparsers = parser.add_subparsers(dest='command')
 
