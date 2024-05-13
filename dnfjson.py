@@ -79,6 +79,7 @@ class JsonTransactionProgress(dnf.callback.TransactionProgress):
 
 def prepare_dnf(args=None):
     base = dnf.Base()
+    base.conf._configure_from_options(args)
     base.init_plugins()
     base.configure_plugins()
     if args and args.releasever:
