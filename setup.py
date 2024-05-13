@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name="dnfjson",
-    version="0.3.0",
+    version="0.3.1",
     author="Christoph Böhmwalder",
     author_email="christoph.boehmwalder@linbit.com",
     description="A libdnf wrapper which produces machine readable output",
